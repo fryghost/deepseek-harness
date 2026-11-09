@@ -2,7 +2,7 @@
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 /** Global panel rows and DOM focus through the production slot renderer. */
 import type { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import { SlotTestRuntime } from '@deepseek-ai/dsh-client-test-runtime'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
@@ -22,6 +22,9 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 const ALPHA = 'sidebar-test-alpha' as MainPanelId
 const BETA = 'sidebar-test-beta' as MainPanelId
 const runtimes = new Set<SlotTestRuntime>()
+const TOOLS_OPEN_KEY = 'dsh.sidebar.tools-open'
+
+beforeEach(() => { localStorage.setItem(TOOLS_OPEN_KEY, 'true') })
 
 afterEach(async () => {
   try {
@@ -29,6 +32,7 @@ afterEach(async () => {
   } finally {
     runtimes.clear()
     cleanup()
+    localStorage.removeItem(TOOLS_OPEN_KEY)
   }
 })
 
@@ -121,6 +125,28 @@ async function mountPanels(runtime: SlotTestRuntime, locale: LocaleRuntime, beta
 }
 
 describe('sidebar global panels', () => {
+  it('starts with tools collapsed and remembers an expanded group after remount', async () => {
+    localStorage.removeItem(TOOLS_OPEN_KEY)
+    const first = await bench()
+    await mountPanels(first.runtime, first.locale)
+    const toggle = await first.view.findByRole('button', { name: 'Tools' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(first.view.queryByRole('button', { name: 'Alpha panel' })).toBeNull()
+    fireEvent.click(toggle)
+    const navigation = await first.view.findByRole('navigation', { name: 'Global panels' })
+    expect(within(navigation).getAllByRole('button').map(row => row.textContent)).toEqual(['Beta panel', 'Alpha panel'])
+    fireEvent.click(within(navigation).getByRole('button', { name: 'Alpha panel' }))
+    expect(first.view.getByRole('heading', { name: 'Alpha content' })).toBeTruthy()
+    first.view.unmount()
+
+    const next = await bench()
+    await mountPanels(next.runtime, next.locale)
+    const reopened = await next.view.findByRole('button', { name: 'Tools' })
+    expect(reopened.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(reopened)
+    expect(next.view.queryByRole('navigation', { name: 'Global panels' })).toBeNull()
+    expect(localStorage.getItem(TOOLS_OPEN_KEY)).toBe('false')
+  })
   it('adds late registrations, removes each plugin contribution, and leaves no empty panel-list DOM', async () => {
     const { runtime, locale, view } = await bench()
     expect(runtime.slots.entries('sidebar.panellist')).toEqual([])

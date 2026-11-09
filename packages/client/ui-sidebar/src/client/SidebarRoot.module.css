@@ -420,6 +420,17 @@
   background: var(--dsw-alias-button-floating-hover);
 }
 
+.root:not(.collapsed) .newSession {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 28%, var(--dsw-alias-border-l3));
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 8%, var(--dsw-alias-button-elevated-fill));
+  color: var(--dsw-alias-state-business-primary);
+  font-weight: 600;
+}
+
+.root:not(.collapsed) .newSession:hover {
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 14%, var(--dsw-alias-button-elevated-fill));
+}
+
 /* macOS: the themed elevated fill reads as a foreign slab on the vibrancy
    sidebar; a white wash sits in the glass like native macOS sidebar
    controls. Dark keeps the same white ink at lower alpha. */
@@ -511,6 +522,31 @@
   background: var(--dsw-alias-interactive-bg-hover);
 }
 
+.toolsToggle {
+  flex: none;
+  margin-bottom: 4px;
+}
+
+.toolsChevron {
+  display: inline-flex;
+}
+
+.toolsGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  color: color-mix(in srgb, #9363de 80%, var(--dsw-alias-label-primary));
+  background: color-mix(in srgb, #9363de 14%, transparent);
+}
+
+.toolsToggle[aria-expanded='false'] .toolsChevron {
+  transform: rotate(-90deg);
+}
+
 .panelRow.panelActive {
   background: var(--dsw-alias-interactive-bg-hover);
   color: var(--dsw-alias-label-primary);
@@ -569,6 +605,11 @@
   padding-left: 0;
 }
 
+.root:not(.collapsed) .regionArea {
+  border-top: 1px solid var(--dsw-alias-border-l3);
+  padding-top: 5px;
+}
+
 /* Footer seats: additive actions stack above Settings. Each occupant owns its
    button geometry and hover chrome. */
 .footArea {
@@ -590,6 +631,11 @@
 
 .collapsed .footArea {
   align-items: center;
+}
+
+.root:not(.collapsed) .footArea {
+  border-top: 1px solid var(--dsw-alias-border-l3);
+  padding-top: 4px;
 }
 
 .collapsed .settingsArea,

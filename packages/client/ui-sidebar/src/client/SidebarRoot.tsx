@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
-  FishLogo, IconNewChatOutlineMedium, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, isDarwinDesktop, ShortcutKeys, Tooltip,
+  FishLogo, IconChevronDownOutlineRegular, IconNewChatOutlineMedium, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconSlidersTwoOutlineRegular, isDarwinDesktop, ShortcutKeys, Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsRenderSlots, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {
@@ -29,6 +29,12 @@ import css from './SidebarRoot.module.css'
 
 /** Wide-content unmount delay; matches the 150ms wide-content fade-out. */
 const COLLAPSE_SETTLE_MS = 150
+
+const TOOLS_OPEN_KEY = 'dsh.sidebar.tools-open'
+
+function readToolsOpen(): boolean {
+  try { return globalThis.localStorage.getItem(TOOLS_OPEN_KEY) === 'true' } catch { return false }
+}
 
 /**
  * How long the column's scrollbars stay drawn after the pointer leaves it.
@@ -104,6 +110,7 @@ export function SidebarRoot({
   // Wide content stays mounted while the collapse animates (fading via
   // .collapsed .wide), unmounts at settle, and remounts right away on expand.
   const [settled, setSettled] = useState(collapsed)
+  const [toolsOpen, setToolsOpen] = useState(readToolsOpen)
   useEffect(() => {
     if (!collapsed) { setSettled(false); return }
     const timer = window.setTimeout(() => { setSettled(true) }, COLLAPSE_SETTLE_MS)
@@ -276,7 +283,24 @@ export function SidebarRoot({
         </button>
       </Tooltip>
 
-      {panels.length > 0 && (
+      {wide && panels.length > 0 && (
+        <button
+          type="button"
+          className={clsx(css.panelRow, css.toolsToggle)}
+          aria-expanded={toolsOpen}
+          onClick={() => {
+            const next = !toolsOpen
+            setToolsOpen(next)
+            try { globalThis.localStorage.setItem(TOOLS_OPEN_KEY, String(next)) } catch { /* Storage is optional. */ }
+          }}
+        >
+          <span className={css.toolsChevron} aria-hidden="true"><IconChevronDownOutlineRegular size={14} /></span>
+          <span className={css.toolsGlyph} aria-hidden="true"><IconSlidersTwoOutlineRegular size={14} /></span>
+          {t('panels.tools')}
+        </button>
+      )}
+
+      {panels.length > 0 && (!wide || toolsOpen) && (
         <nav className={css.panelList} aria-label={t('panels.label')}>
           {panels.map(({ id, label }) => (
             <PanelRow
